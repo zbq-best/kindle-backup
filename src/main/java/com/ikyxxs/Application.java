@@ -98,7 +98,7 @@ public class Application implements CommandLineRunner {
         File[] files = dir.listFiles();
         if (null != files && files.length > 0) {
             for (File file : files) {
-                if (!file.isFile()) {
+                if (!file.isFile() || file.getName().startsWith(".")) {
                     continue;
                 }
 
