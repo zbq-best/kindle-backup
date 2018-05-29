@@ -80,12 +80,12 @@ public class Application implements CommandLineRunner {
             log.error("获取云端目录异常", e);
             contents = new Contents();
         }
-        log.info("云端电子书数量：" + contents.getBooks().size());
 
         //将目录存入缓存
         Map<String, Book> bookMap  = new HashedMap<>();
         Set<Book> bookSet = new HashSet<>();
         if (CollectionUtils.isNotEmpty(contents.getBooks())) {
+            log.info("云端电子书数量：" + contents.getBooks().size());
             contents.getBooks().forEach(book -> bookMap.put(book.getFileName(), book));
         }
 
