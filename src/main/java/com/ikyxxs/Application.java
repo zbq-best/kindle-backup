@@ -130,17 +130,10 @@ public class Application implements CommandLineRunner {
                 JSON.toJSONString(new Contents(new LinkedList<>(localBookSet)))
         );
 
-        Contents newContents = new Contents();
-        bookSet.addAll(bookMap.values());
-        newContents.setBooks(new LinkedList<>(bookSet));
-
         //上传云端书籍目录
-        File contentsFile = FileUtils.createText("Contents.txt", JSON.toJSONString(newContents));
-        if (null != contentsFile) {
-            //上传目录
-            QiniuUtils.upload(contentsFile.getPath(), contentsFile.getName());
-            //删除本地临时目录
-            FileUtils.deleteFile(contentsFile);
-        }
+        bookSet.addAll(bookMap.values());
+        QiniuUtils.createUploadAndDeleteText("Contents.txt",
+                JSON.toJSONString(new Contents(new LinkedList<>(bookSet)))
+        );
     }
 }
