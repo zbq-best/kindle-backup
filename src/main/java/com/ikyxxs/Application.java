@@ -16,9 +16,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -84,6 +81,7 @@ public class Application implements CommandLineRunner {
         //将目录存入缓存
         Map<String, Book> bookMap  = new HashedMap<>();
         Set<Book> bookSet = new HashSet<>();
+        Set<Book> localBookSet = new HashSet<>();
         if (CollectionUtils.isNotEmpty(contents.getBooks())) {
             log.info("云端电子书数量：" + contents.getBooks().size());
             contents.getBooks().forEach(book -> bookMap.put(book.getFileName(), book));
@@ -109,6 +107,7 @@ public class Application implements CommandLineRunner {
                     book = new Book(file.getName());
                 }
 
+                localBookSet.add(book);
                 if (null == book.getModifiedTime() || file.lastModified() >  book.getModifiedTime()) {
                     log.info("正在上传：" + file.getName());
                     Boolean result = QiniuUtils.upload(file.getPath(), file.getName());
@@ -121,11 +120,21 @@ public class Application implements CommandLineRunner {
         }
         log.info("上传完成，共上传电子书数量：" + bookSet.size());
 
+        //上传本次同步记录
+        QiniuUtils.createUploadAndDeleteText("UploadLog.txt",
+                JSON.toJSONString(new Contents(new LinkedList<>(bookSet)))
+        );
+
+        //上传本地目录
+        QiniuUtils.createUploadAndDeleteText("LocalContents.txt",
+                JSON.toJSONString(new Contents(new LinkedList<>(localBookSet)))
+        );
+
         Contents newContents = new Contents();
         bookSet.addAll(bookMap.values());
         newContents.setBooks(new LinkedList<>(bookSet));
 
-        //创建本地临时目录
+        //上传云端书籍目录
         File contentsFile = FileUtils.createText("Contents.txt", JSON.toJSONString(newContents));
         if (null != contentsFile) {
             //上传目录
